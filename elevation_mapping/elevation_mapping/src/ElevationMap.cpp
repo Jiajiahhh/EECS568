@@ -236,16 +236,18 @@ bool ElevationMap::addSemantic(const PointCloudType::Ptr pointCloud,  const ros:
     auto& a1= alpha1(index(0),index(1));
     auto& a2= alpha2(index(0),index(1));
     auto& a3= alpha3(index(0),index(1));
+    if(isnan(a0))a0=0;if(isnan(a1))a1=0;
+    if(isnan(a2))a2=0;if(isnan(a3))a3=0;
     if(tmp==0){
       a0=a0+1;
     }
     else if(tmp==1){
       a1=a1+1;
     }
-    else if(tmp==2){
+    else if(tmp==2){ 
       a2=a2+1;
     }
-    else if(tmp==3){
+    else if(tmp==3){ 
       a3=a3+1;
     }
 
@@ -253,7 +255,7 @@ bool ElevationMap::addSemantic(const PointCloudType::Ptr pointCloud,  const ros:
     if(a<a1) a=a1;
     if(a<a2) a=a2;
     if(a<a3) a=a3;
-    float res=0;
+    float res=1.0;
     if(a==a0){
       res = 1.0;
     }
@@ -265,17 +267,16 @@ bool ElevationMap::addSemantic(const PointCloudType::Ptr pointCloud,  const ros:
     {
       res = 0.6;
     }
-    else{
+    else if (a==a3){
       res = 0.3;
     }
-
-
+    // std::cout<<tmp<<" "<<res<<" "<<std::endl;
     auto& semantic = semanticLayer(index(0), index(1));
     // float tmp=point.b;
     // if(tmp<0||tmp>10)tmp=0;
     // std::cout<<res<<std::endl;
-    // semantic=res;
-    semantic = (tmp +1) / 4.0;
+    semantic=res;
+    // semantic = (tmp +1) / 4.0;
     
 
   }
