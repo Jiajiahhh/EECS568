@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<launch>
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch">
+    <arg name="paused"        value="false"/>
+    <arg name="use_sim_time"  value="false"/>
+    <arg name="gui"           value="false"/>
+    <arg name="headless"      value="false"/>
+    <arg name="debug"         value="false"/>
+  </include>
+
+
+  <node pkg="elevation_mapping_demos" type="tf_to_pose_publisher.py" name="scout_pose_publisher">
+    <param name="from_frame" type="string" value="t265_odom_frame" />
+    <param name="to_frame"   type="string" value="t265_link" />
+  </node>
+
+<include file="$(find realsense2_camera)/launch/rs_d400_and_t265.launch" />
+ 
+<node pkg="elevation_mapping" type="elevation_mapping" name="elevation_mapping" output="screen">
+    <rosparam command="load" file="$(find elevation_mapping_demos)/config/robots/scout_t265.yaml" />
+    <rosparam command="load" file="$(find elevation_mapping)/config/sensor_processors/perfect.yaml" />
+    <rosparam command="load" file="$(find elevation_mapping_demos)/config/postprocessing/postprocessor_pipeline.yaml" />
+  </node>
+<!-- Launch RViz with the demo configuration. -->
+  <node name="rviz" pkg="rviz" type="rviz" args="-d $(find elevation_mapping_demos)/rviz/turtlebot3_waffle_demo.rviz" />
+  <node pkg="coordinate_map" type="coordinate_map" name="coordinate_map"/>
+</launch>
+
+
