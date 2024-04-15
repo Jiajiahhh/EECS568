@@ -21,11 +21,9 @@ namespace elevation_mapping {
 
 ElevationMap::ElevationMap(ros::NodeHandle nodeHandle)
     : nodeHandle_(nodeHandle),
-    // 原始地图，每个字符串相当于新建了一层
       rawMap_({"elevation", "variance", "horizontal_variance_x", "horizontal_variance_y", "horizontal_variance_xy", "color", "time",
                "lowest_scan_point", "sensor_x_at_lowest_scan", "sensor_y_at_lowest_scan", "sensor_z_at_lowest_scan","semantic","alpha0","alpha1","alpha2","alpha3"}),
 
-    //  处理过后的地图层
       fusedMap_({"elevation", "upper_bound", "lower_bound", "color","semantic"}),
 
 
@@ -70,7 +68,7 @@ void ElevationMap::setGeometry(const grid_map::Length& length, const double& res
 // Adds new point cloud data to the elevation map and performs fusion with existing data.
 bool ElevationMap::add(const PointCloudType::Ptr pointCloud, Eigen::VectorXf& pointCloudVariances, const ros::Time& timestamp,
                        const Eigen::Affine3d& transformationSensorToMap) {// this part is main part
-  // 看看是否可以运行
+
   if (static_cast<unsigned int>(pointCloud->size()) != static_cast<unsigned int>(pointCloudVariances.size())) {
     ROS_ERROR("ElevationMap::add: Size of point cloud (%i) ansd variances (%i) do not agree.", (int)pointCloud->size(),
               (int)pointCloudVariances.size());
@@ -288,100 +286,6 @@ bool ElevationMap::addSemantic(const PointCloudType::Ptr pointCloud,  const ros:
   return true;
 }
 
-
-float ElevationMap::calculateSemanticValue(std::vector<int> semantic_value) {
-  // Calculate semantic value using the semantic counting sensor model.
-  // for (int i = 0; i < alpha[1].size(); ++i) {
-  //     double sumAlpha = 0;
-  //     double maxAlpha = 0;
-  //     for (int k = 0; k < alpha[0].size(); ++k) {
-  //         sumAlpha += alpha[i][k];
-  //         maxAlpha = std::max(maxAlpha, alpha[i][k]);
-  //     }
-  //     for (int k = 0; k < alpha[0].size(); ++k){
-  //       thetaMean[i][k] = alpha[i][k] / sumAlpha;
-  //     }
-  //     thetaVariance[i] = (maxAlpha/sumAlpha)*(1-maxAlpha/sumAlpha)/ (sumAlpha + 1);
-  // }
-  // Create a map to store the count of each value
-  std::map<int, int> countMap;
-
-  for (int m = 0; m <= semanticNum_; ++m) {
-      countMap[m] = 0;
-  }
-
-  // Count the occurrences of each value in the vector
-  for (int value : semantic_value) {
-      countMap[value]++;
-  }
-
-  // Find the value with the maximum count
-  double mostFrequent = semantic_value[0]; // Initialize to the first value
-  int maxCount = countMap[semantic_value[0]]; // Initialize to the count of the first value
-  for (const auto& pair : countMap) {
-      if (pair.second > maxCount) {
-          mostFrequent = pair.first;
-          maxCount = pair.second;
-      }
-  }
-  
-  return mostFrequent;
-}
-
-// bool ElevationMap::addSemantic(const PointCloudType::Ptr pointCloud,  const ros::Time& timestamp,
-//                        const Eigen::Affine3d& transformationSensorToMap) {// this part is main part
-
-//   // Initialization for time calculation.
-//   const ros::WallTime methodStartTime(ros::WallTime::now());
-//   boost::recursive_mutex::scoped_lock scopedLockForRawData(rawMapMutex_);
-
-//   // Update initial time if it is not initialized.
-//   if (initialTime_.toSec() == 0) {
-//     initialTime_ = timestamp;
-//   }
-//   // Store references for efficient interation.
-//   auto& semanticLayer = rawMap_["semantic"];
-//   // auto& timeLayer = rawMap_["time"];
-//   // auto& lowestScanPointLayer = rawMap_["lowest_scan_point"];
-//   // auto& sensorXatLowestScanLayer = rawMap_["sensor_x_at_lowest_scan"];
-//   // auto& sensorYatLowestScanLayer = rawMap_["sensor_y_at_lowest_scan"];
-//   // auto& sensorZatLowestScanLayer = rawMap_["sensor_z_at_lowest_scan"];
- 
-//   for (unsigned int i = 0; i < pointCloud->size(); ++i) {
-//     auto& point = pointCloud->points[i];
-//     grid_map::Index index;
-//     grid_map::Position position(point.x, point.y);  // NOLINT(cppcoreguidelines-pro-type-union-access)
-//     //--------------------------------------------------------------------------------------------------------------------------------------
-//     //point cloud info transform to location, with traversability estimation, we only update semantic info where we can go through.
-//     if (!rawMap_.getIndex(position, index)) {
-//       continue;  // Skip this point if it does not lie within the elevation map.
-//     }
-
-//     auto& semantic = semanticLayer(index(0), index(1));
-//     //auto& time = timeLayer(index(0), index(1));
-//     // auto& lowestScanPoint = lowestScanPointLayer(index(0), index(1));
-//     // auto& sensorXatLowestScan = sensorXatLowestScanLayer(index(0), index(1));
-//     // auto& sensorYatLowestScan = sensorYatLowestScanLayer(index(0), index(1));
-//     // auto& sensorZatLowestScan = sensorZatLowestScanLayer(index(0), index(1));
-//     float tmp=point.b;
-//     if(tmp<0||tmp>10)tmp=0;
-//     // std::cout<<(tmp+1) / 4.0<<std::endl;
-//     semantic=(tmp+1) / 4.0;
-//     // const grid_map::Position3 sensorTranslation(transformationSensorToMap.translation());
-//     // sensorXatLowestScan = sensorTranslation.x();
-//     // sensorYatLowestScan = sensorTranslation.y();
-//     // sensorZatLowestScan = sensorTranslation.z();
-//     // time = scanTimeSinceInitialization;
-
-//   }
-
-//   clean();
-//   rawMap_.setTimestamp(timestamp.toNSec());  // Point cloud stores time in microseconds.
-
-//   const ros::WallDuration duration = ros::WallTime::now() - methodStartTime;
-//   ROS_DEBUG("Raw map has been updated with a new point cloud in %f s.", duration.toSec());
-//   return true;
-// }
 
 
 
