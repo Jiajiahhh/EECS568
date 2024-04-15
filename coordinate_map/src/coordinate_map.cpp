@@ -38,33 +38,34 @@ private:
 	geometry_msgs::PointStamped output_point;
 	// remember to change this
 	//Simulation
-	int imageWidth = 1920;   
-	int imageHeight = 1080;
+	// int imageWidth = 1920;   
+	// int imageHeight = 1080;
 
 	//fieldtest rosbag
-	// int imageWidth = 640;   
-	// int imageHeight = 480;
+	int imageWidth = 640;   
+	int imageHeight = 480;
 
-	Mat depthImage = Mat::zeros(imageWidth, imageHeight, CV_32FC1); // 注意这里要修改为你接收的深度图像尺寸
+	// Mat depthImage = Mat::zeros(imageWidth, imageHeight, CV_32FC1); // simulation
+	Mat depthImage = Mat::zeros(imageWidth, imageHeight, CV_16UC1); // rosbag
 	Mat semantic_info = Mat::zeros(imageWidth, imageHeight, CV_8UC1);
 
 public:
 	ImageConverter() : it_(nh_)
 	{
 		// topic sub for simulation:
-		image_sub_depth = it_.subscribe("/camera/depth/image_raw",
-										1, &ImageConverter::imageDepthCb, this);
-		camera_info_sub_ =
-			nh_.subscribe("/camera/rgb/camera_info", 1,
-						  &ImageConverter::cameraInfoCb, this);
+		// image_sub_depth = it_.subscribe("/camera/depth/image_raw",
+		// 								1, &ImageConverter::imageDepthCb, this);
+		// camera_info_sub_ =
+		// 	nh_.subscribe("/camera/rgb/camera_info", 1,
+		// 				  &ImageConverter::cameraInfoCb, this);
 		
 		// topic sub for fieldtest:
-		// image_sub_depth = it_.subscribe("/d435/aligned_depth_to_color/image_raw",
-		// 								1, &ImageConverter::imageDepthCb, this);
+		image_sub_depth = it_.subscribe("/d435/aligned_depth_to_color/image_raw",
+										1, &ImageConverter::imageDepthCb, this);
 		
-		// camera_info_sub_ =
-		// 	nh_.subscribe("/d435/aligned_depth_to_color/camera_info", 1,
-		// 				  &ImageConverter::cameraInfoCb, this);
+		camera_info_sub_ =
+			nh_.subscribe("/d435/aligned_depth_to_color/camera_info", 1,
+						  &ImageConverter::cameraInfoCb, this);
 
 
 		semantic_info_sub_ =
@@ -107,8 +108,10 @@ public:
 
 		try
 		{
+			// cv_ptr =
+			// 	cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_32FC1);//simulation
 			cv_ptr =
-				cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_32FC1);
+				cv_bridge::toCvCopy(msg, sensor_msgs::image_encodings::TYPE_16UC1);//rosbag
 			depthImage = cv_ptr->image;
 		}
 		catch (cv_bridge::Exception &e)
@@ -127,21 +130,21 @@ public:
 		for (int u = 0; u < imageWidth; u++) // 该循环遍历深度图的每一个像素
 			for (int v = 0; v < imageHeight; v++)
 			{
-				float tmp_z = depthImage.at<float>(v, u); // 获取该点深度值并转换单位为米，即z值
-				// std::cout << tmp_z<< "---\n";
-				if(tmp_z<=0 || tmp_z>=6) continue;
+				// float tmp_z = depthImage.at<float>(v, u); // simulation
+				float tmp_z = 0.001 * depthImage.at<u_int16_t>(v, u); // rosbag
+				if(tmp_z<=0 || tmp_z>=8) continue;
 				float tmp_x = (u - camera_info.K.at(2)) / camera_info.K.at(0) * tmp_z;
 				float tmp_y = (v - camera_info.K.at(5)) / camera_info.K.at(4) * tmp_z; // 根据相机内参计算该像素点对应的xy坐标
 				// 输入参数为像素点在图像上的坐标，像素点对应深度值，输出为像素点的三维坐标，该坐标相对于深度参考系
-
-				float real_x = tmp_z;
-				float real_y = -tmp_x;
-				float real_z = -tmp_y;
+				// constant add as static tf in simulation
+				float real_x = tmp_z+0.07;
+				float real_y = -tmp_x-0.037;
+				float real_z = -tmp_y+0.107;
 				// RGB参考系相对于深度系有一个固定变换，手动进行，加的定值是相机离地高度
 				pcl::PointXYZRGB p;
-				p.x = real_x+0.07;
-				p.y = real_y-0.037; // p.z=1;
-				p.z = real_z+0.107;
+				p.x = real_x;
+				p.y = real_y;
+				p.z = real_z;
 				// 将RGB中的坐标传入点云xyz信息，下面是把语义信息存入点云的b通道
 				int info = semantic_info.at<u_int8_t>(v, u);
 				p.r = 0;
@@ -152,9 +155,9 @@ public:
 			}
 		const pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloudx = cloud;
 		pcl::toROSMsg(*cloudx, output);
-		output.header.frame_id = "base_footprint";   //simulation
-		// output.header.frame_id = "t265_link";  //field test rosbag
-		output.header.stamp = ros::Time::now();
+		// output.header.frame_id = "base_footprint";   //simulation
+		output.header.frame_id = "t265_link";  //field test rosbag
+		output.header.stamp = camera_info.header.stamp;
 		pcl_pub.publish(output);
 	}
 };

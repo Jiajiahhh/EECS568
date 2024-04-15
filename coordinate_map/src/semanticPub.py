@@ -11,17 +11,18 @@ class VideoStreamPublisher:
         rospy.init_node(self.node_name, anonymous=True)
         
         self.bridge = CvBridge()
-     
-        self.input_topic = "/camera/rgb/image_raw"  ##for simulation
-        # self.input_topic = "/d435/color/image_raw"  ##for rosbag
         self.img_size = (600,375)
+        
+        # self.input_topic = "/camera/rgb/image_raw"  ##for simulation
+        # self.raw_size = (1920,1080)
+        self.input_topic = "/d435/color/image_raw"  ##for rosbag
         self.raw_size = (640,480)
         
         self.output_topic = "/Semantic_info"
         
         config_path = '/home/wmc/rob599/SegFormer/local_configs/rellis_New/ours_std.py'
         check_path = '/home/wmc/rob599/SegFormer/work_dirs/b1_ch384_emb250_ar32.pth'
-        self.model = init_segmentor(config_path, check_path, device='cpu')
+        self.model = init_segmentor(config_path, check_path, device='cuda:0')
 
         self.subscriber = rospy.Subscriber(self.input_topic, Image, self.callback)
         self.publisher = rospy.Publisher(self.output_topic, Image, queue_size=10)
@@ -40,11 +41,11 @@ class VideoStreamPublisher:
             print(e)
 
         result = inference_segmentor(self.model, cv_image)
-        result = cv2.resize(result,self.raw_size,interpolation=cv2.INTER_NEAREST)
+        result = cv2.resize(result[0],self.raw_size,interpolation=cv2.INTER_NEAREST)
         # cv2.imshow('tmp',result[0].astype(np.uint8)*50)
 
         try:
-            ros_image = self.bridge.cv2_to_imgmsg(result[0].astype(np.uint8), "mono8")
+            ros_image = self.bridge.cv2_to_imgmsg(result.astype(np.uint8), "mono8")
             ros_image.header = data.header
             print('xxxx')
             self.publisher.publish(ros_image)
