@@ -1,0 +1,42 @@
+<?xml version="1.0"?>
+<package>
+  <name>coordinate_map</name>
+  <version>1.0.0</version>
+  <description>coordinate_map package</description>
+
+  <maintainer email="dvb_feng@163.com">XUE FENG</maintainer>
+
+  <license>SUSTech</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <build_depend>roscpp</build_depend>
+  <build_depend>rostime</build_depend>
+  <build_depend>std_msgs</build_depend>
+  <build_depend>sensor_msgs</build_depend>
+  <build_depend>message_filters</build_depend>
+  <build_depend>image_transport</build_depend>
+  <build_depend>compressed_image_transport</build_depend>
+  <build_depend>compressed_depth_image_transport</build_depend>
+  <build_depend>cv_bridge</build_depend>
+  <build_depend>tf</build_depend>
+  <build_depend>nav_msgs</build_depend>
+
+  <run_depend>message_runtime</run_depend>
+  <run_depend>roscpp</run_depend>
+  <run_depend>rostime</run_depend>
+  <run_depend>std_msgs</run_depend>
+  <run_depend>sensor_msgs</run_depend>
+  <run_depend>message_filters</run_depend>
+  <run_depend>image_transport</run_depend>
+  <run_depend>compressed_image_transport</run_depend>
+  <run_depend>compressed_depth_image_transport</run_depend>
+  <run_depend>cv_bridge</run_depend>
+  <run_depend>tf</run_depend>
+  <run_depend>nav_msgs</run_depend>
+
+
+  <export>
+  </export>
+</package>
+
