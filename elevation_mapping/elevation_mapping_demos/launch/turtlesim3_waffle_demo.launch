@@ -55,5 +55,6 @@
 
   <!-- Launch RViz with the demo configuration. -->
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find elevation_mapping_demos)/rviz/turtlebot3_waffle_demo.rviz"/>
+  <node pkg="coordinate_map" type="coordinate_map" name="coordinate_map"/>
 
 </launch>
