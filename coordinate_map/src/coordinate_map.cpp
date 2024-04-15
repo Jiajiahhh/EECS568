@@ -25,18 +25,15 @@ class ImageConverter
 private:
 	ros::NodeHandle nh_;
 	image_transport::ImageTransport it_;
-	image_transport::Subscriber image_sub_color; // 接收彩色图像
-	image_transport::Subscriber image_sub_depth; // 接收深度图像
+	image_transport::Subscriber image_sub_depth; // depth subscriber
 
-	ros::Subscriber camera_info_sub_;	// 接收深度图像对应的相机参数话题
-	ros::Subscriber semantic_info_sub_; // 接收深度图像对应的相机参数话题
-	ros::Publisher arm_point_pub_;		// 发布一个三维坐标点，可用于可视化
-	ros::Publisher pcl_pub;				// 发布语义点云
+	ros::Subscriber camera_info_sub_;	// camera_info subscriber
+	ros::Subscriber semantic_info_sub_; // semantic info subscriber to receive segmentation
+	ros::Publisher pcl_pub;				// semantic pointcloud publisher
 
 	sensor_msgs::CameraInfo camera_info;
 
-	geometry_msgs::PointStamped output_point;
-	// remember to change this
+	// remember to change this 
 	//Simulation
 	// int imageWidth = 1920;   
 	// int imageHeight = 1080;
@@ -126,26 +123,31 @@ public:
 		pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZRGB>);
 		sensor_msgs::PointCloud2 output;
 		std::cout << depthImage.size()<< "---\n";
-		// 把点云转化为ros消息
-		for (int u = 0; u < imageWidth; u++) // 该循环遍历深度图的每一个像素
+		
+		for (int u = 0; u < imageWidth; u++) 
 			for (int v = 0; v < imageHeight; v++)
 			{
 				// float tmp_z = depthImage.at<float>(v, u); // simulation
 				float tmp_z = 0.001 * depthImage.at<u_int16_t>(v, u); // rosbag
 				if(tmp_z<=0 || tmp_z>=8) continue;
 				float tmp_x = (u - camera_info.K.at(2)) / camera_info.K.at(0) * tmp_z;
-				float tmp_y = (v - camera_info.K.at(5)) / camera_info.K.at(4) * tmp_z; // 根据相机内参计算该像素点对应的xy坐标
-				// 输入参数为像素点在图像上的坐标，像素点对应深度值，输出为像素点的三维坐标，该坐标相对于深度参考系
+				float tmp_y = (v - camera_info.K.at(5)) / camera_info.K.at(4) * tmp_z; 
+				
 				// constant add as static tf in simulation
-				float real_x = tmp_z+0.07;
-				float real_y = -tmp_x-0.037;
-				float real_z = -tmp_y+0.107;
-				// RGB参考系相对于深度系有一个固定变换，手动进行，加的定值是相机离地高度
+				// float real_x = tmp_z+0.07;
+				// float real_y = -tmp_x-0.037;
+				// float real_z = -tmp_y+0.107;
+
+				// constant add as static tf in field test
+				float real_x = tmp_z;
+				float real_y = -tmp_x;
+				float real_z = -tmp_y+0.2;
+				
 				pcl::PointXYZRGB p;
 				p.x = real_x;
 				p.y = real_y;
 				p.z = real_z;
-				// 将RGB中的坐标传入点云xyz信息，下面是把语义信息存入点云的b通道
+				// semantic label is saved in pointcloud blue channel
 				int info = semantic_info.at<u_int8_t>(v, u);
 				p.r = 0;
 				p.g = 0;
