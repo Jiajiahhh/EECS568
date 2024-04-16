@@ -24,6 +24,10 @@ roslaunch elevation_mapping_demos turtlesim3_waffle_demo.launch #simulation
 roslaunch elevation_mapping_demos scout_base_t265.launch #field test rosbag
 python3 semanticPub.py #This may need additional environment requirement
 ```
+Use the following commands to run the visual odometry.
+```
+rosrun visodom visodom_ros_v2
+```
 ### Data & Model Config
 Data for rosbag can be downloaded here: https://drive.google.com/file/d/1AeSp0Hy8wSHd3G4FlrhOfOEF4HTDPf89/view?usp=drive_link
 The trained segmentation model can be found here: https://drive.google.com/file/d/1gBVYd2bt254pQJ-HnQFMDsQR2o6G2Xhf/view?usp=drive_link
