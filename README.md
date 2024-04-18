@@ -24,9 +24,13 @@ roslaunch elevation_mapping_demos turtlesim3_waffle_demo.launch #simulation
 roslaunch elevation_mapping_demos scout_base_t265.launch #field test rosbag
 python3 semanticPub.py #This may need additional environment requirement
 ```
-Use the following command to run the visual odometry.
+Use the following command to run the visual odometry in simulation.
 ```
-rosrun visodom visodom_ros_v2
+rosrun visodom visodo_ros_v2
+```
+Use the following command to run the visual odometry in real environment.
+```
+rosrun visodom visodo_ros_real
 ```
 ### Data & Model Config
 Data for rosbag can be downloaded here: https://drive.google.com/file/d/1AeSp0Hy8wSHd3G4FlrhOfOEF4HTDPf89/view?usp=drive_link
