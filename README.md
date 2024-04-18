@@ -33,3 +33,14 @@ Data for rosbag can be downloaded here: https://drive.google.com/file/d/1AeSp0Hy
 The trained segmentation model can be found here: https://drive.google.com/file/d/1gBVYd2bt254pQJ-HnQFMDsQR2o6G2Xhf/view?usp=drive_link
 The model configuration file can be found here: https://drive.google.com/file/d/1VzgHvvhtghwegc9KhhZg6f8mr4MAyMR9/view?usp=drive_link
 
+## IMU Correction InEKF
+The data in this part is obtained from visual odometry and saved in IMU_InEKF/data.
+We provide two sets of test data. 'Output.txt' stores the VO processed data (position (x, y), yaw, dt, feature point coordinates), and 'true.txt' stores the (true position of the car (x, y). imu readings: (quaternion, angular velocity, linear acceleration))
+
+### Test
+Replace the data by changing the addresses of 'filetrue' and 'filepath2' in run_imu_riekf.py.
+Use the following commands to run the test demo.
+```
+python run_imu_riekf.py
+```
+
