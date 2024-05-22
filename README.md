@@ -1,4 +1,4 @@
-# ROB530Final
+# ROB530Final Semantic SLAM with RGBD Camera over Unstructured Terrains
 
 ## Installation
 ### Semantic Segmentation
